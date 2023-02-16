@@ -1,0 +1,352 @@
+#-----------IMPORTS------#
+import datetime
+from datetime import datetime
+#-----------EMPTY LISTS STORE---------#
+empty_list = [] #probably not needed
+user_password_list = [] #user name and password, read from file
+user_list = [] # just username
+password_list = [] # just password
+# task_list = [] # all tasks, read from file, maybe 2d, check this?
+# split_task_list = [] # all tasks but split so can be referenced by indexing
+# username_list = []
+# edit_task_list = []
+# task_user_list = []
+# overdue_list = [] # list of overdue tasks
+# overdue_name = [] # list of names stripped from overdue list
+# display_stats_task = [] # list created after read task_overview.txt
+# display_stats_user = []  # list created after read user_overview.txt
+
+#-------------Empty Variable Store---------------------#
+
+complete_counter = 0 #these might not be needed as I have found ways to count complete tasks without them
+overdue_counter = 0  #these might not be needed as I have found ways to count complete tasks without them
+user_task_counter = 0  #these might not be needed as I have found ways to count complete tasks without them
+
+#------------- FUNCTION STORE ------------------#
+
+"""reads files and appends to list, also asks for access mode"""
+def read_file(file, list, accessmode):
+    with open(file, accessmode) as CONSTANT:
+        for lines in CONSTANT:
+            list.append(lines.rstrip(", ").rstrip("\n"))
+        return list
+#------------------------------------------------------------------------------------------------#
+"""Splits user_password list into user_list and password_list"""
+def split_user_list(list, newlist, secondnewlist):
+    for i in list:
+        chunk = i.split(", ")
+        newlist.append(chunk[0])
+        secondnewlist.append(chunk[1])
+    return newlist, secondnewlist
+#------------------------------------------------------------------------------------------------#
+"""defined split task so split_task_list can be used in view_all function and for later editing task"""
+def split_task(list, newlist):
+    for i in list:
+        chunk = i.split(", ")
+        newlist.append(chunk)
+    return newlist
+#------------------------------------------------------------------------------------------------#
+"""used in add task section, takes inputs, writes to file, also appends new item to list so can be viewed straight away"""
+def add_task(file, list):
+    user = input("Please enter the name of the user you want to assign a task to: ")
+    title = input("Please enter a title for the task: ")
+    description = input("Please enter a description of the task: ")
+    today = datetime.today()
+    today_formatted = datetime.strftime(today, "%d %b %Y")
+    due_date = input("When is the task due to be completed (DD MON YYYY (i.e 10 Oct 2019): ")
+    add_task = open(file, "a+")
+    add_task.write(
+        f"{user}, {title}, {description}, {today_formatted}, {due_date}, No\n")
+    add_task.close()
+    add_to_list = (
+        f"{user}, {title}, {description}, {today_formatted}, {due_date}, No\n")
+    add_to_split = add_to_list.split(", ")
+    list.append(add_to_split)
+    print("Task added successfully.\n")
+    return list
+#------------------------------------------------------------------------------------------------#
+"""View all tasks function"""
+def view_all(list):
+    for i in range(len(list)):
+        print(f"Task {i+1}:\t\t\t\t" + list[i][1])
+        print("Assigned to:\t\t" + list[i][0])
+        print("Date Assigned:\t\t" + list[i][3])
+        print("Due Date:\t\t\t" + list[i][4])
+        print("Task Complete?\t\t" + list[i][5].strip("\n"))
+        print("Task Description:\n" + list[i][2] + "\n\n")
+
+#------------------------------------------------------------------------------------------------#
+"""View my task function"""
+def view_my_task(user, list):
+    for i in range(len(list)):
+        if user == list[i][0]:
+            print(f"Task {i+1}:\t\t\t\t" + list[i][1])
+            print("Assigned to:\t\t" + list[i][0])
+            print("Date Assigned:\t\t" + list[i][3])
+            print("Due Date:\t\t\t" + list[i][4])
+            print("Task Complete?\t\t" + list[i][5])
+            print("Task Description:\n" + list[i][2] + "\n\n")
+    return list
+#------------------------------------------------------------------------------------------------#
+"""Register user function"""
+def reg_user(user, file):
+    new_user = input("Please enter the name of the new user: ")
+    print(user_list)
+    for i in range(len(user_list)):
+        while new_user in user_list:
+            new_user = input("User name already exists. Please enter another user name: ")
+        if new_user not in user_list:
+            new_password = input("Please enter password: ")
+            password_check = input("Please re-enter password: ")
+            while new_password != password_check:
+                new_password = input("Password entries did not match. Please enter new password: ")
+                password_check = input("Please re-enter password: ")
+            if new_password == password_check:
+                print("User successfully added.")
+                user_password_list = open(file, "a+")
+                user_password_list.write(f"{new_user}, {new_password}\n")
+                user_password_list.close()
+        return user
+#------------------------------------------------------------------------------------------------#
+"""counts occurences of x  in list. (i) takes on value to compare x to as loop works through list"""
+def count_x(list, x):
+    count = 0
+    for i in list:
+        if (i == x):
+            count = count +1
+    return count
+#------------------------------------------------------------------------------------------------#
+
+"""checks whether or not the username input is already in list of registered user (from txt file/user_list) """
+
+def check_user(list_of_user_names, input_user_name):
+    if input_user_name in list_of_user_names:
+        return True
+#------------------------------------------------------------------------------------------------#
+"""checks if password input exists on password list, but only runs if user_name has been checked"""
+"""compares index point of user_name to check for password on same line """
+def check_password(list_of_passwords, input_password):
+    if user_name_input in user_list:
+        index_check = user_list.index(user_name_input)
+        if list_of_passwords[index_check] == input_password:
+            return True
+
+"""uses various function calls to structure and write to user_overview.txt and task_overview.txt """
+def generate_reports():
+    global i, today, today_formatted, due_date_string, due_date_formatted
+    clear = open("user_overview.txt", "w+")
+    clear.write(f"There are {(len(user_list))} users registered to the system\n")
+    clear.write(f"There are {len(split_task_list)} tasks currently being tracked\n\n")
+    clear.close()
+    for i in range(len(user_list)):
+        task_counter = len(split_task_list)
+        name_count = count_x(task_user_list, user_list[i])
+        complete_count = count_x(complete_names, user_list[i])
+        incomplete_count = count_x(incomplete_names, user_list[i])
+        overdue_count = count_x(overdue_name, user_list[i])
+        with open("user_overview.txt", "a+") as user_overview_file:
+            user_overview_file.write(
+                f"\n{user_list[i]} has {name_count} task/s assigned.\n")
+            user_overview_file.write(
+                f"{user_list[i]} has {round((name_count / task_counter) * 100)}% of tasks assigned to them.\n")
+            if name_count != 0:
+                user_overview_file.write(
+                    f"{user_list[i]} has completed {round((complete_count / name_count) * 100)}% of their tasks.\n")
+                user_overview_file.write(
+                    f"{user_list[i]} has not completed {round((incomplete_count / name_count) * 100)}% of their tasks.\n")
+                user_overview_file.write(
+                    f"{round((overdue_count / name_count) * 100)}% of {user_list[i]}'s tasks are incomplete and overdue.\n\n")
+        with open("task_overview.txt", "w+") as task_overview_file:
+            task_overview_file.write(f"There are {len(split_task_list)} tasks saved in the tracker.\n")
+            task_overview_file.write(f"There are {len(complete_names)} complete tasks.\n")
+            task_overview_file.write(f"There are {(len(split_task_list)) - (len(complete_names))} uncompleted tasks.\n")
+            task_overview_file.write(f"There are {len(overdue_name)} tasks overdue.\n")
+            if len(split_task_list) != 0:
+                task_overview_file.write(
+                    f"{round(100 / (len(split_task_list))) * (len(incomplete_list))}% of tasks are incomplete.\n")
+                task_overview_file.write(
+                    f"{round(100 / (len(split_task_list))) * (len(overdue_list))}% of tasks are overdue.\n")
+
+
+"""takes split_task_list and turns it into two lists depending on whether it is complete or not """
+def comp_incompl_list(list1, list2, list3):
+    for j in range(len(list1)):
+        if list1[j][5] == "Yes":
+            list2.append(list1[j])
+        if list1[j][5] == "No":
+            list3.append(list1[j])
+
+"""takes the names from the complete/incomplete lists and appends them to a new list"""
+def comp_incompl_names(list1, list2, list3, list4):
+    # complete_names = []
+    # incomplete_names = []
+    for i in range(len(list1)):
+        list3.append(list1[i][0])
+    for i in range(len(list2)):
+        list4.append(list2[i][0])
+    return complete_names, incomplete_names
+
+
+"""takes user_name from split_task_ist and creates a new list with of user names"""
+def task_list_user(list1, list2):
+    for i in range(len(list1)):
+        list2.append(list1[i][0])
+    return list2
+
+#--------------------------Log in Section---------------------------------------------------------------#
+
+""" call read_file on user.txt, call split_user_list, call log in function"""
+read_file("user.txt", user_password_list, "r")
+split_user_list(user_password_list, user_list, password_list)
+user_name_input = input("Please enter your user name: ")
+while check_user(user_list, user_name_input) != True:
+    user_name_input = input("User name not found. Please enter a registered user name: ")
+password_input = input("Please enter your password: ")
+while check_password(password_list, password_input) != True:
+    password_input = input("Password does not match username. Please enter your password: ")
+print("Log in successful.\n\n")
+
+#------------------------------------------------------------------------------------------------#
+
+#----------Menu section-------#
+while True:
+# this section creates empty lists, calls functions to be populate lists and displays menu
+    complete_list = []
+    incomplete_list = []
+    complete_names = []
+    incomplete_names = []
+    overdue_list = []
+    overdue_name = []
+    task_user_list = []
+    task_list = []
+    split_task_list = []
+    display_stats_user = []
+    display_stats_task = []
+    read_file("tasks.txt", task_list, "r")
+    split_task(task_list, split_task_list)
+    task_list_user(split_task_list, task_user_list)
+    comp_incompl_list(split_task_list, complete_list, incomplete_list)
+    comp_incompl_names(complete_list, incomplete_list, complete_names, incomplete_names)
+    today = datetime.today()
+    today_formatted = datetime.strftime(today, "%d %b %Y")
+    for i in range(len(incomplete_list)):
+        due_date_string = incomplete_list[i][4]
+        due_date_formatted = datetime.strptime(due_date_string, "%d %b %Y")
+        if today > due_date_formatted:
+            overdue_list.append(incomplete_list[i])
+    for i in range(len(overdue_list)):
+        overdue_name.append(overdue_list[i][0])
+    if user_name_input != "admin":
+        menu = input('''Select one of the following Options below:
+r  - Registering a user
+a  - Adding a task
+va - View all tasks
+vm - view my task
+e  - Exit: ''').lower()
+
+    if user_name_input == "admin":
+        menu = input('''Select one of the following Options below:
+r  - Registering a user
+a  - Adding a task
+va - View all tasks
+vm - View my task
+ds - Statistics
+gr - Generate Reports
+e  - Exit: ''').lower()
+
+
+#------Register a user-----#
+    if menu == "r" and user_name_input == "admin":
+        register_user_checked = reg_user(user_password_list, "user.txt")
+    elif menu == "r" and user_name_input != "admin":
+        print("\nOnly admin user is allowed to register new users.\n")
+        continue
+
+#--------Add a task-------#
+    if menu == "a":
+        add_task("tasks.txt", split_task_list)
+
+#----- View all tasks----#
+    if menu == "va":
+        view_all(split_task_list)
+
+#-------View my tasks -----#
+    if menu == "vm":
+        display_stats_task = []
+        display_stats_user = []
+        view_my_task(user_name_input, split_task_list)
+        edit_check = input(str("If you would like to update a specific task please enter 'y'. If you want to return"
+                               " to the menu please enter '-1':")).lower()
+        if edit_check == "y":
+            edit_task_num = input("Please enter the task number that you would like to update: ")
+            edit_task_int = int(edit_task_num)
+            print(f"\nTask {edit_task_num}:\t\t\t\t" + split_task_list[edit_task_int-1][1])
+            print("Assigned to:\t\t" + split_task_list[edit_task_int-1][0])
+            print("Date Assigned:\t\t" + split_task_list[edit_task_int-1][3])
+            print("Due Date:\t\t\t" + split_task_list[edit_task_int-1][4])
+            print("Task Complete?\t\t" + split_task_list[edit_task_int-1][5])
+            print("Task Description:\n" + split_task_list[edit_task_int-1][2] + "\n\n")
+            edit_type_choice = input("Enter 'm' to mark task as complete or 'e' to edit task details: ").lower()
+            if edit_type_choice == "e":
+                new_assignee = input(f"Current assignee: '" + split_task_list[edit_task_int-1][0]+"'. "
+                                    "Please enter new assignee: ")
+                new_due_date = input(f"Current due date: '" + split_task_list[edit_task_int-1][4] + "'. "
+                                     "Please enter new due date (DD MON YYYY (i.e 10 Oct 2019): ")
+                split_task_list[edit_task_int - 1][0] = new_assignee
+                split_task_list[edit_task_int - 1][4] = new_due_date
+                split_task_strings = [", ".join(line) for line in split_task_list]
+                split_task_lines = "\n".join(split_task_strings)
+                with open("tasks.txt", "w") as file:
+                    file.write(split_task_lines)
+
+            if edit_type_choice == "m":
+                split_task_list[edit_task_int - 1][5] = "Yes"
+                split_task_strings = [", ".join(line) for line in split_task_list]
+                split_task_lines = "\n".join(split_task_strings)
+                with open("tasks.txt", "w") as file:
+                    file.write(split_task_lines)
+                print("Task completion status updated to 'Yes'.")
+            if edit_check == "-1":
+                break
+
+#---------Generate Reports---------#
+    if menu == "gr" and user_name_input == "admin":
+        generate_reports()
+
+#-----Display Statistics--------#
+    if menu == "ds" and user_name_input == "admin":
+        try:
+            task = open("task_overview.txt")
+            task.close()
+            users = open("user_overview.txt")
+            users.close()
+            read_file("task_overview.txt", display_stats_task, "r")
+            read_file("user_overview.txt", display_stats_user, "r")
+            print("Task Overview:")
+            for i in range(len(display_stats_task)):
+                print (display_stats_task[i])
+            print("\n\n")
+            print("User Overview:")
+            for i in range(len(display_stats_user)):
+                print(display_stats_user[i])
+            print("\n\n")
+        except FileNotFoundError:
+            generate_reports()
+            task = open("task_overview.txt")
+            task.close()
+            users = open("user_overview.txt")
+            users.close()
+            read_file("task_overview.txt", display_stats_task, "r")
+            read_file("user_overview.txt", display_stats_user, "r")
+            print("Task Overview:")
+            for i in range(len(display_stats_task)):
+                print (display_stats_task[i])
+            print("\n\n")
+            print("User Overview:")
+            for i in range(len(display_stats_user)):
+                print(display_stats_user[i])
+            print("\n\n")
+
+#-----exit--------#
+    if menu == "e":
+        break
